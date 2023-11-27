@@ -139,7 +139,6 @@ export default class ApprovalsHomeComponent extends LightningElement {
         this.myApprovalsIcon = "";
         this.myTeamApprovalsIcon = "";
         this.componentHeader = "My Approvals";
-        console.log(selectedItemValue);
         if (selectedItemValue === "myApprovals") {
             this.myApprovalsIcon = "utility:check";
         } else if (selectedItemValue === "myTeamApprovals") {
@@ -155,13 +154,11 @@ export default class ApprovalsHomeComponent extends LightningElement {
         this.hasLoaded = false;
         retrievePendingApprovals({ listType })
             .then((result) => {
-                console.log("retrieved data: ");
-                console.log(result);
                 this.prepareTableData(result);
             })
             .catch((error) => {
                 // TODO: Add error handling here
-                console.log(error);
+                console.error(error);
             })
             .finally(() => {
                 this.hasLoaded = true;
@@ -170,12 +167,10 @@ export default class ApprovalsHomeComponent extends LightningElement {
 
     // TODO: Move this function to a separate file
     prepareTableData(records) {
-        console.log("method entry prepareTableData");
         let tableData = [];
         // Start preparing data
         for (let i = 0; i < records.length; i++) {
             let record = records[i];
-            console.log(record);
             let tblDataObj = {
                 id: record.Id,
                 assignedTo: record.sbaa__Approver__r.Name,
@@ -188,27 +183,20 @@ export default class ApprovalsHomeComponent extends LightningElement {
                 quoteName: record.Quote__r.Name,
                 discountAmt:
                     record.Quote__r.SBQQ__TotalCustomerDiscountAmount__c,
-                discountPercent: record.Quote__r.Max_Line_Discount2__c / 100,
-                UBBdiscountPercent:
-                    record.Quote__r.UBB_Max_Line_Discount__c / 100,
                 partnerDiscount: record.Quote__r.SBQQ__PartnerDiscount__c / 100,
                 distributorDiscount:
                     record.Quote__r.SBQQ__DistributorDiscount__c / 100,
                 amtTotal: record.Quote__r.SBQQ__ListAmount__c,
                 approveUrl: `/apex/sbaa__Approve?id=${record.Id}`,
-                rejectUrl: `/apex/sbaa__Reject?id=${record.Id}`,
-                businessReason: record.Quote__r.TRAC_Business_Reason__c
+                rejectUrl: `/apex/sbaa__Reject?id=${record.Id}`
             };
             if (record.sbaa__Rule__c && record.sbaa__Rule__r.Name) {
                 tblDataObj.approvalRuleURL = `/lightning/r/sbaa__ApprovalRule__c/${record.sbaa__Rule__c}/view`;
                 tblDataObj.relatedToRuleName = record.sbaa__Rule__r.Name;
             }
             tableData.push(tblDataObj);
-            console.log("tableData");
-            console.log(tableData);
         }
         this.hasData = tableData.length > 0;
         this.data = tableData;
-        console.log(this.data);
     }
 }

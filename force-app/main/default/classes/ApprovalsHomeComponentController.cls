@@ -42,9 +42,6 @@ public without sharing class ApprovalsHomeComponentController {
                     Quote__r.SBQQ__PartnerDiscount__c,
                     Quote__r.SBQQ__DistributorDiscount__c,
                     Quote__r.SBQQ__ListAmount__c,
-                    Quote__r.TRAC_Business_Reason__c,
-                    Quote__r.Max_Line_Discount2__c,
-                    Quote__r.UBB_Max_Line_Discount__c,
                     sbaa__Rule__c,
                     sbaa__Rule__r.Name,
                     sbaa__AssignedTo__r.Name
