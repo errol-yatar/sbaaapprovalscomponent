@@ -1,0 +1,269 @@
+<template>
+    <template if:true={isRejectionModalVisible}>
+        <section
+            role="dialog"
+            tabindex="-1"
+            class="slds-modal slds-fade-in-open slds-modal_small"
+            aria-labelledby="modal-heading-01"
+            aria-modal="true"
+            aria-describedby="modal-content-id-1"
+        >
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button
+                        class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        title="Close"
+                        onclick={closeRejectionCommentsModal}
+                    >
+                        <lightning-icon
+                            icon-name="utility:close"
+                            alternative-text="Close"
+                            title="Close"
+                            size="large"
+                        ></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2
+                        id="modal-heading-01"
+                        class="slds-modal__title slds-hyphenate"
+                    >
+                        Confirmation
+                    </h2>
+                </header>
+                <div
+                    class="slds-modal__content slds-var-p-around_medium"
+                    id="modal-content-id-1"
+                >
+                    <lightning-textarea
+                        label="Add a comment here for rejection reason:"
+                        value={rejectionComments}
+                        onchange={handleCommentChange}
+                    ></lightning-textarea>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button
+                        class="slds-button slds-button_neutral"
+                        onclick={closeRejectionCommentsModal}
+                    >
+                        Cancel
+                    </button>
+                    <lightning-button
+                        variant="brand"
+                        name="reject"
+                        onclick={handleMassAction}
+                        label="Reject"
+                    ></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    <lightning-card>
+        <div class="slds-text-heading_small" slot="title">
+            {componentHeader}
+            <!-- Include my team approvals -->
+        </div>
+        <div slot="actions">
+            <template if:true={hasSelections}>
+                <lightning-button
+                    label="Approve"
+                    onclick={handleMassAction}
+                    variant="brand"
+                ></lightning-button>
+                <lightning-button
+                    label="Reject"
+                    onclick={showRejectionCommentsModal}
+                    variant="destructive"
+                ></lightning-button>
+            </template>
+            <span style="margin-left: 5px"></span>
+            <lightning-button-menu
+                alternative-text="Show menu"
+                menu-alignment="right"
+                onselect={handleApprovalListSelect}
+            >
+                <lightning-menu-item
+                    value="myApprovals"
+                    label="My Approvals"
+                    icon-name={myApprovalsIcon}
+                ></lightning-menu-item>
+                <lightning-menu-item
+                    value="myTeamApprovals"
+                    label="My Team Approvals"
+                    icon-name={myTeamApprovalsIcon}
+                ></lightning-menu-item>
+            </lightning-button-menu>
+            <span style="margin-left: 5px"></span>
+            <lightning-button-icon
+                icon-name="utility:refresh"
+                label="New"
+                onclick={handleReload}
+            ></lightning-button-icon>
+        </div>
+        <div if:true={hasLoaded}>
+            <!-- No data -->
+            <div if:false={hasData} class="slds-align_absolute-center">
+                <div class="empty-state-container slds-text-align_center">
+                    <img
+                        src="/img/chatter/OpenRoad.svg"
+                        aria-hidden="true"
+                        alt=""
+                    />
+                    <div class="empty-state-message slds-m-top_medium">
+                        No pending approvals for you ...yet. Yay! 🎉
+                    </div>
+                </div>
+            </div>
+            <!-- Has pending approvals -->
+            <div if:true={hasData}>
+                <lightning-datatable
+                    key-field="id"
+                    data={data}
+                    columns={columns}
+                    onrowselection={handleRowSelect}
+                    onrowaction={handleRowAction}
+                >
+                </lightning-datatable>
+                <div class="slds-p-around_medium lgc-bg mobile-only">
+                    <ul class="slds-has-dividers_bottom-space">
+                        <template for:each={data} for:item="approvalRec">
+                            <li class="slds-item" key={approvalRec.id}>
+                                <lightning-tile
+                                    label={approvalRec.quoteName}
+                                    href={approvalRec.quoteUrl}
+                                >
+                                    <dl class="slds-dl_horizontal">
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>Owner:</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <p
+                                                class="slds-truncate"
+                                                title={approvalRec.quoteOwner}
+                                            >
+                                                {approvalRec.quoteOwner}
+                                            </p>
+                                        </dd>
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>Opportunity:</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <p
+                                                class="slds-truncate"
+                                                title={approvalRec.opptyName}
+                                            >
+                                                <a
+                                                    href={approvalRec.opptyUrl}
+                                                    target="_self"
+                                                    >{approvalRec.opptyName}</a
+                                                >
+                                            </p>
+                                        </dd>
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>Discount (Amt):</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <p
+                                                class="slds-truncate"
+                                                title={approvalRec.discountAmt}
+                                            >
+                                                <lightning-formatted-number
+                                                    value={approvalRec.discountAmt}
+                                                    format-style="currency"
+                                                    currency-code="USD"
+                                                ></lightning-formatted-number>
+                                            </p>
+                                        </dd>
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>Discount (%):</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <p
+                                                class="slds-truncate"
+                                                title={approvalRec.discountPercent}
+                                            >
+                                                <lightning-formatted-number
+                                                    value={approvalRec.discountPercent}
+                                                    format-style="percent"
+                                                    maximum-fraction-digits="2"
+                                                ></lightning-formatted-number>
+                                            </p>
+                                        </dd>
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>UBB Discount (%):</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <p
+                                                class="slds-truncate"
+                                                title={approvalRec.UBBdiscountPercent}
+                                            >
+                                                <lightning-formatted-number
+                                                    value={approvalRec.UBBdiscountPercent}
+                                                    format-style="percent"
+                                                    maximum-fraction-digits="2"
+                                                ></lightning-formatted-number>
+                                            </p>
+                                        </dd>
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>Approval Rule:</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <p
+                                                class="slds-truncate"
+                                                title={approvalRec.relatedToRuleName}
+                                            >
+                                                <a
+                                                    href={approvalRec.approvalRuleURL}
+                                                    target="_self"
+                                                    >{approvalRec.relatedToRuleName}</a
+                                                >
+                                            </p>
+                                        </dd>
+                                        <dt class="slds-dl_horizontal__label">
+                                            <h5>Actions:</h5>
+                                        </dt>
+                                        <dd
+                                            class="slds-dl_horizontal__detail slds-tile__meta"
+                                        >
+                                            <a
+                                                href={approvalRec.approveUrl}
+                                                target="_self"
+                                                >Approve</a
+                                            >
+                                            |
+                                            <a
+                                                href={approvalRec.rejectUrl}
+                                                target="_self"
+                                                >Reject</a
+                                            >
+                                        </dd>
+                                    </dl>
+                                </lightning-tile>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div if:false={hasLoaded}>
+            <div style="height: 450px">
+                <lightning-spinner
+                    alternative-text="Loading"
+                    size="large"
+                ></lightning-spinner>
+            </div>
+        </div>
+    </lightning-card>
+</template>
