@@ -15,3 +15,5 @@ Requirements:
 How to Use:
 - Click the Deploy to Salesforce button above.
 - In the app builder, add the component to any lightning page to your liking.
+
+![image](https://github.com/errol-yatar/sbaaapprovalscomponent/assets/44381851/6c10455e-640d-46b7-8eee-6c1c7cfd71fa)
